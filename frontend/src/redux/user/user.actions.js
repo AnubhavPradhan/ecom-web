@@ -11,9 +11,9 @@ export const registerUser = (user) => async () => {
 
   try {
     const res = await axios.post(
-      'http://localhost:5000/api/v1/user/register',
+      "http://localhost:5000/api/v1/user/register",
       payload,
-      { headers: { 'Content-Type': 'application/json' } }
+      { headers: { "Content-Type": "application/json" } }
     );
     return res.data; // 2xx only
   } catch (err) {
@@ -21,7 +21,7 @@ export const registerUser = (user) => async () => {
       err.response?.data?.message ||
       err.response?.data ||
       err.message ||
-      'Registration failed';
+      "Registration failed";
     throw new Error(msg);
   }
 };
@@ -41,8 +41,13 @@ export const loginUser = (user, history) => async (dispatch) => {
 
     if (history) history.push("/shop");
   } catch (err) {
-    console.log("LOGIN ERR:", err.response?.data || err.message);
-    throw err.response?.data || err;
+    // Surface a human-friendly message to the caller (component)
+    const msg =
+      err.response?.data?.message ||
+      err.response?.data ||
+      err.message ||
+      "Login failed";
+    throw new Error(msg);
   }
 };
 
