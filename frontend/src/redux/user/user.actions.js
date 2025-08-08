@@ -1,47 +1,54 @@
+// frontend/src/redux/user/user.actions.js
 import { UserActionTypes } from "./user.types";
-
 import axios from "axios";
-// import setAuthToken from "../../utils/set-authToken";
 
-export const registerUser = (user) => (dispatch) => {
-  axios
-    .post("api/v1/user/register", user)
-    .then((res) => console.log(res))
-    .catch((err) => console.log(err));
-};
-
-// Login - Get User Token
-export const loginUser = (user, history) => (dispatch) => {
-  axios
-    .post(`/api/v1/user/login`, user)
-    .then((res) => {
-      // save token
-      const { token, user } = res.data;
-
-      // set token to headers
-      localStorage.setItem("jwtToken", token);
-      // set token to headers
-      //   setAuthToken(token);
-      //   const decoded = jwt_decode(token);
-      //   console.log(history);
-
-      // set current user in redux store
-      dispatch(setCurrentUser(user));
-      history.push("/shop");
-    })
-    .catch((err) => console.log(err));
-};
-
-// set looged in user
-
-export const setCurrentUser = (user) => {
-  return {
-    type: UserActionTypes.SET_CURRENT_USER,
-    payload: user,
+export const registerUser = (user) => async (dispatch) => {
+  const payload = {
+    name: user.displayName ?? user.name,
+    email: user.email,
+    password: user.password,
+    password2: user.confirmPassword ?? user.password2,
   };
+
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/v1/user/register",
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    console.log("REGISTER OK:", res.data);
+    return res.data;
+  } catch (err) {
+    const serverMsg = err.response?.data || { message: err.message || "Registration failed" };
+    console.log("REGISTER ERR:", serverMsg);
+    throw serverMsg;
+  }
 };
 
-// set logged out user
+export const loginUser = (user, history) => async (dispatch) => {
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/v1/user/login",
+      user,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    const { token, user: userObj } = res.data;
+
+    localStorage.setItem("jwtToken", token);
+    dispatch(setCurrentUser(userObj));
+
+    if (history) history.push("/shop");
+  } catch (err) {
+    console.log("LOGIN ERR:", err.response?.data || err.message);
+    throw err.response?.data || err;
+  }
+};
+
+export const setCurrentUser = (user) => ({
+  type: UserActionTypes.SET_CURRENT_USER,
+  payload: user,
+});
 
 export const logoutUser = () => (dispatch) => {
   localStorage.removeItem("jwtToken");
