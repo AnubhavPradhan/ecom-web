@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  api:
+    container_name: ecommerce-api       # your custom API container name
+    image: ecommerce-api
+    build: .
+    ports:
+      - "5000:5000"  # host:container
+    environment:
+      MONGODB_URI: "mongodb://mongo:27017/ecommerce"   # <-- set this
+      SECRET_KEY: "change_me_in_prod_please"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  mongo:
+    container_name: ecommerce-mongo     # your custom Mongo container name
+    image: mongo:6
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1"]
+      interval: 30s     # was 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:
