@@ -1,9 +1,16 @@
 import React from "react";
 import "./checkout.styles.scss";
 import CheckoutItem from "../../components/checkout-item/checkout-item.component";
-// import StripeCheckoutButton from "../../components/stripe-button/stripe-button.component";
 import { connect } from "react-redux";
 import { selectCartTotal } from "../../redux/cart/cart.selectors";
+
+// Currency formatter for clean totals
+const currency = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 const CheckoutPage = ({ cartItems, total }) => (
   <div className="checkout-page">
@@ -28,13 +35,14 @@ const CheckoutPage = ({ cartItems, total }) => (
         <span>Remove</span>
       </div>
     </div>
+
     {cartItems &&
       cartItems.map((cartItem) => (
         <CheckoutItem key={cartItem._id} cartItem={cartItem} />
       ))}
 
     <div className="total">
-      <span>TOTAL : ${total}</span>
+      <span>TOTAL : {currency.format(total)}</span>
     </div>
 
     {/* <StripeCheckoutButton price={total} /> */}
