@@ -14,6 +14,7 @@ class SignUp extends Component {
       email: "",
       password: "",
       confirmPassword: "",
+      loading: false,
     };
   }
 
@@ -24,40 +25,44 @@ class SignUp extends Component {
 
   handleSubmit = async (event) => {
     event.preventDefault();
-    const { displayName, email, password, confirmPassword } = this.state;
+
+    const displayName = this.state.displayName.trim();
+    const email = this.state.email.trim();
+    const { password, confirmPassword } = this.state;
 
     if (password !== confirmPassword) {
       alert("Password and Confirm Password do not match");
       return;
     }
 
-    // Option A: send these four fields; action maps to backend shape
-    this.props
-      .registerUser({ displayName, email, password, confirmPassword })
-      .then(() => {
-        // optional: clear form on success
-        this.setState({
-          displayName: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
-      })
-      .catch((err) => {
-        // optional: show backend validation errors
-        console.log("Register failed:", err);
-        const msg =
-          err?.message ||
-          err?.email ||
-          err?.name ||
-          err?.password ||
-          "Registration failed";
-        alert(msg);
+    this.setState({ loading: true });
+    try {
+      // Only send what the backend expects; the action maps displayName -> name
+      await this.props.registerUser({ displayName, email, password });
+
+      // Success: clear the form and notify
+      this.setState({
+        displayName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        loading: false,
       });
+      alert("Registered!");
+    } catch (err) {
+      // The thunk throws on non-2xx; show a useful message
+      const msg =
+        err?.message ||
+        err?.response?.data?.message ||
+        "Registration failed";
+      alert(msg);
+      this.setState({ loading: false });
+    }
   };
 
   render() {
-    const { displayName, email, password, confirmPassword } = this.state;
+    const { displayName, email, password, confirmPassword, loading } =
+      this.state;
 
     return (
       <div className="sign-up">
@@ -101,7 +106,9 @@ class SignUp extends Component {
             required
           />
 
-          <CustomButton type="submit">SIGN UP</CustomButton>
+          <CustomButton type="submit" disabled={loading}>
+            {loading ? "Signing Up..." : "SIGN UP"}
+          </CustomButton>
         </form>
       </div>
     );

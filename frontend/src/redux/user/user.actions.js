@@ -2,26 +2,27 @@
 import { UserActionTypes } from "./user.types";
 import axios from "axios";
 
-export const registerUser = (user) => async (dispatch) => {
+export const registerUser = (user) => async () => {
   const payload = {
     name: user.displayName ?? user.name,
     email: user.email,
     password: user.password,
-    password2: user.confirmPassword ?? user.password2,
   };
 
   try {
     const res = await axios.post(
-      "http://localhost:5000/api/v1/user/register",
+      'http://localhost:5000/api/v1/user/register',
       payload,
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { 'Content-Type': 'application/json' } }
     );
-    console.log("REGISTER OK:", res.data);
-    return res.data;
+    return res.data; // 2xx only
   } catch (err) {
-    const serverMsg = err.response?.data || { message: err.message || "Registration failed" };
-    console.log("REGISTER ERR:", serverMsg);
-    throw serverMsg;
+    const msg =
+      err.response?.data?.message ||
+      err.response?.data ||
+      err.message ||
+      'Registration failed';
+    throw new Error(msg);
   }
 };
 
