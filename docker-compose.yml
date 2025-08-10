@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   api:
-    container_name: ecommerce-api       # your custom API container name
+    container_name: ecommerce-web      # your custom API container name
     image: ecommerce-api
     build: .
     ports:
